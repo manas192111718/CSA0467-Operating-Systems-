@@ -1,0 +1,123 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+// Define the structure for an employee
+struct Employee {
+    int empId;
+    char empName[50];
+    float empSalary;
+};
+
+// Function to add a new employee record to the file
+void addEmployee(FILE *file) {
+    struct Employee emp;
+
+    printf("Enter Employee ID: ");
+    scanf("%d", &emp.empId);
+    printf("Enter Employee Name: ");
+    scanf("%s", emp.empName);
+    printf("Enter Employee Salary: ");
+    scanf("%f", &emp.empSalary);
+
+    // Move the file pointer to the end of the file
+    fseek(file, 0, SEEK_END);
+
+    // Write the employee record to the file
+    fwrite(&emp, sizeof(struct Employee), 1, file);
+
+    printf("Employee added successfully!\n");
+}
+
+// Function to display all employee records in the file
+void displayEmployees(FILE *file) {
+    struct Employee emp;
+
+    // Move the file pointer to the beginning of the file
+    fseek(file, 0, SEEK_SET);
+
+    printf("\nEmployee Details:\n");
+    printf("------------------------------------------------------\n");
+    printf("| %-10s | %-20s | %-10s |\n", "Employee ID", "Employee Name", "Salary");
+    printf("------------------------------------------------------\n");
+
+    // Read and display each employee record
+    while (fread(&emp, sizeof(struct Employee), 1, file) == 1) {
+        printf("| %-10d | %-20s | %-10.2f |\n", emp.empId, emp.empName, emp.empSalary);
+    }
+
+    printf("------------------------------------------------------\n");
+}
+
+// Function to search for an employee by ID
+void searchEmployee(FILE *file) {
+    int searchId;
+    struct Employee emp;
+
+    printf("Enter Employee ID to search: ");
+    scanf("%d", &searchId);
+
+    // Move the file pointer to the beginning of the file
+    fseek(file, 0, SEEK_SET);
+
+    // Search for the employee by ID
+    while (fread(&emp, sizeof(struct Employee), 1, file) == 1) {
+        if (emp.empId == searchId) {
+            printf("Employee Found!\n");
+            printf("Employee ID: %d\nEmployee Name: %s\nEmployee Salary: %.2f\n", emp.empId, emp.empName, emp.empSalary);
+            return;
+        }
+    }
+
+    printf("Employee with ID %d not found.\n", searchId);
+}
+
+int main() {
+    FILE *employeeFile;
+
+    // Open the file in binary mode for reading and writing
+    employeeFile = fopen("employee_data.dat", "r+b");
+
+    if (employeeFile == NULL) {
+        // If the file doesn't exist, create a new file
+        employeeFile = fopen("employee_data.dat", "w+b");
+        if (employeeFile == NULL) {
+            perror("Error creating file");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    int choice;
+
+    do {
+        printf("\nEmployee Database\n");
+        printf("1. Add Employee\n");
+        printf("2. Display Employees\n");
+        printf("3. Search Employee\n");
+        printf("4. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1:
+                addEmployee(employeeFile);
+                break;
+            case 2:
+                displayEmployees(employeeFile);
+                break;
+            case 3:
+                searchEmployee(employeeFile);
+                break;
+            case 4:
+                printf("Exiting the program.\n");
+                break;
+            default:
+                printf("Invalid choice. Please try again.\n");
+        }
+
+    } while (choice != 4);
+
+    // Close the file
+    fclose(employeeFile);
+
+    return 0;
+}
