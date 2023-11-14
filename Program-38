@@ -1,0 +1,99 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MAX_REQUESTS 100
+
+// Function to sort an array of integers in ascending order
+void sortRequests(int requests[], int numRequests) {
+    for (int i = 0; i < numRequests - 1; ++i) {
+        for (int j = 0; j < numRequests - i - 1; ++j) {
+            if (requests[j] > requests[j + 1]) {
+                // Swap requests[j] and requests[j+1]
+                int temp = requests[j];
+                requests[j] = requests[j + 1];
+                requests[j + 1] = temp;
+            }
+        }
+    }
+}
+
+// Function to simulate the SCAN disk scheduling algorithm
+void scanDisk(int requests[], int numRequests, int start) {
+    int direction = 1; // 1 for moving towards the higher cylinder numbers, -1 for moving towards the lower cylinder numbers
+    int currentPosition = start;
+    int totalSeekTime = 0;
+
+    sortRequests(requests, numRequests);
+
+    printf("SCAN Disk Scheduling Simulation\n\n");
+
+    while (1) {
+        printf("Current Position: %d\n", currentPosition);
+
+        // Find the nearest request in the current direction
+        int nearestRequest = -1;
+        for (int i = 0; i < numRequests; ++i) {
+            if (direction == 1 && requests[i] >= currentPosition) {
+                nearestRequest = requests[i];
+                break;
+            } else if (direction == -1 && requests[i] <= currentPosition) {
+                nearestRequest = requests[i];
+                break;
+            }
+        }
+
+        if (nearestRequest != -1) {
+            printf("Servicing Request at Cylinder %d\n", nearestRequest);
+            totalSeekTime += abs(currentPosition - nearestRequest);
+            currentPosition = nearestRequest;
+        } else {
+            // Change direction if no requests are found in the current direction
+            direction = -direction;
+            printf("Changing Direction\n");
+        }
+
+        // Remove the serviced request from the list
+        for (int i = 0; i < numRequests; ++i) {
+            if (requests[i] == currentPosition) {
+                for (int j = i; j < numRequests - 1; ++j) {
+                    requests[j] = requests[j + 1];
+                }
+                numRequests--;
+                break;
+            }
+        }
+
+        // Break if all requests are serviced
+        if (numRequests == 0) {
+            break;
+        }
+    }
+
+    printf("\nTotal Seek Time: %d\n", totalSeekTime);
+}
+
+int main() {
+    int requests[MAX_REQUESTS];
+    int numRequests, startCylinder;
+
+    printf("Enter the number of requests: ");
+    scanf("%d", &numRequests);
+
+    if (numRequests <= 0 || numRequests > MAX_REQUESTS) {
+        printf("Invalid number of requests. Exiting...\n");
+        return 1;
+    }
+
+    printf("Enter the start cylinder: ");
+    scanf("%d", &startCylinder);
+
+    printf("Enter the cylinder numbers of requests:\n");
+    for (int i = 0; i < numRequests; ++i) {
+        printf("Request %d: ", i + 1);
+        scanf("%d", &requests[i]);
+    }
+
+    scanDisk(requests, numRequests, startCylinder);
+
+    return 0;
+}
